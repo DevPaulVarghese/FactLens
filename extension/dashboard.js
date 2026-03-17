@@ -2,7 +2,12 @@ const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 const fileList = document.getElementById('file-list');
 const fileCount = document.getElementById('file-count');
-const API_BASE = "http://127.0.0.1:8080";
+let API_BASE = "http://127.0.0.1:8080";
+chrome.storage.local.get(['apiBase'], (res) => {
+    if (res.apiBase) {
+        API_BASE = res.apiBase;
+    }
+});
 
 // Handle drag and drop
 dropZone.addEventListener('dragover', (e) => {

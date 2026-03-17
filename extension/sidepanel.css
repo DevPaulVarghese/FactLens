@@ -49,16 +49,30 @@ body {
     border-right: 1px solid var(--border-color);
 }
 
-.settings-select {
-    background: var(--bg-card);
+.settings-select:focus, .settings-input:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.settings-input {
+    background: var(--bg-input);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     border-radius: 4px;
     padding: 4px 8px;
     font-size: 0.75rem;
     font-family: 'Outfit', sans-serif;
-    outline: none;
-    cursor: pointer;
+    width: 140px;
+    transition: all 0.2s ease;
+}
+
+.url-config-container {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+    border-left: 1px solid var(--border-color);
+    padding-left: 12px;
 }
 
 .vllm-toggle-container {

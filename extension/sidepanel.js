@@ -21,19 +21,29 @@ let gaugeTrue = 0;
 let gaugeFalse = 0;
 let gaugeOther = 0;
 
-const API_BASE = "http://127.0.0.1:8080";
+// API Base Configuration
+let API_BASE = "http://127.0.0.1:8080";
+chrome.storage.local.get(['apiBase'], (res) => {
+    if (res.apiBase) {
+        API_BASE = res.apiBase;
+        console.log("App using custom API_BASE:", API_BASE);
+        updateVaultStats(); // Re-fetch stats with new base
+    }
+});
 
 // --- Settings UI Elements ---
 const modelSelect = document.getElementById('model-select');
 const vllmToggle = document.getElementById('vllm-toggle');
 const vaultToggle = document.getElementById('vault-toggle');
 const manageVaultBtn = document.getElementById('manage-vault-btn');
+const apiBaseInput = document.getElementById('api-base-input');
 
 // Load settings from storage
-chrome.storage.local.get(['preferredModel', 'useVllm', 'useVault'], (res) => {
+chrome.storage.local.get(['preferredModel', 'useVllm', 'useVault', 'apiBase'], (res) => {
     if (res.preferredModel) modelSelect.value = res.preferredModel;
     if (res.useVllm !== undefined) vllmToggle.checked = res.useVllm;
     if (res.useVault !== undefined) vaultToggle.checked = res.useVault;
+    if (res.apiBase) apiBaseInput.value = res.apiBase;
 });
 
 // Save settings on change
@@ -47,6 +57,16 @@ vllmToggle.addEventListener('change', () => {
 
 vaultToggle.addEventListener('change', () => {
     chrome.storage.local.set({ useVault: vaultToggle.checked });
+});
+
+apiBaseInput.addEventListener('change', () => {
+    const newBase = apiBaseInput.value.trim().replace(/\/$/, ""); // Remove trailing slash
+    if (newBase) {
+        chrome.storage.local.set({ apiBase: newBase });
+        API_BASE = newBase;
+        console.log("API_BASE updated to:", API_BASE);
+        updateVaultStats();
+    }
 });
 
 manageVaultBtn.addEventListener('click', () => {
