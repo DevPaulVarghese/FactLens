@@ -14,9 +14,7 @@ An advanced, multi-agent AI framework that transforms how we consume information
 
 ## Use: https://factlens-backend-l34ssaqatq-uc.a.run.app 
 
-<img width="2559" height="1557" alt="image" src="https://github.com/user-attachments/assets/59c8be89-0986-44a9-9cb0-032d115fb314" />
-
-Features:
+Features of Google Chrome Extension:
 1. Can fact-check news articles: Can be tested for the following URL: https://www.scimex.org/newsfeed/expert-reaction-could-new-coronavirus-have-come-from-snakes
 <img width="2560" height="1552" alt="image" src="https://github.com/user-attachments/assets/7d0f9405-490c-43a4-ab27-fb865139e265" />
 
