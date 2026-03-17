@@ -1,4 +1,4 @@
-# 🎯 FactLens - Real-Time AI Fact-Checking & Trust Analysis - Agents for Good
+# 🎯 FactLens - Real-Time AI Fact-Checking & Trust Analysis - Category: Agents for Good
 
 > **Google AI Agents Hackathon 2026**
 
@@ -16,7 +16,24 @@ An advanced, multi-agent AI framework that transforms how we consume information
 
 <img width="2559" height="1557" alt="image" src="https://github.com/user-attachments/assets/59c8be89-0986-44a9-9cb0-032d115fb314" />
 
-Can be tested for the following URL: https://www.scimex.org/newsfeed/expert-reaction-could-new-coronavirus-have-come-from-snakes
+Features:
+1. Can fact-check news articles: Can be tested for the following URL: https://www.scimex.org/newsfeed/expert-reaction-could-new-coronavirus-have-come-from-snakes
+<img width="2560" height="1552" alt="image" src="https://github.com/user-attachments/assets/7d0f9405-490c-43a4-ab27-fb865139e265" />
+
+2. Can chat with the content of the news article and Local Knowledge Base setup via Vault:
+<img width="2560" height="1552" alt="image" src="https://github.com/user-attachments/assets/ba2cad01-f72f-45f0-bbdb-4157bea54285" />
+
+3. Can look up similar articles to those fact-checked:
+<img width="2560" height="1552" alt="image" src="https://github.com/user-attachments/assets/43becb62-0550-4d59-9e5a-62ae22318213" />
+
+4. Can set up a local Knowledge Base:
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/1d69b5ed-8792-4329-94bb-ceffa95797d8" />
+
+5. Can query for info from Local Knowledge:
+<img width="968" height="1552" alt="image" src="https://github.com/user-attachments/assets/7264e28c-333e-4738-b513-aacd986cf521" />
+
+6. Can Read-Out Loud Page (Reader vs Fact Checker Voice) & Highlight cases that are true, plausible, or false:
+<img width="2560" height="1552" alt="image" src="https://github.com/user-attachments/assets/2f632171-a75b-484d-93ef-0e090287eb6c" />
 
 ---
 
