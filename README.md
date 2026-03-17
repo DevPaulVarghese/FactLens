@@ -1,4 +1,4 @@
-# 🎯 FactLens - Real-Time AI Fact-Checking & Trust Analysis
+# 🎯 FactLens - Real-Time AI Fact-Checking & Trust Analysis - Agents for Good
 
 > **Google AI Agents Hackathon 2026**
 
@@ -12,13 +12,9 @@ An advanced, multi-agent AI framework that transforms how we consume information
 - **🎙️ Narrator Mode**: Word-level synchronized text-to-speech highlighting directly on the webpage.
 - **⚙️ Multi-Model Support**: Support for Gemini 2.0 Flash/Pro and VLLM backends.
 
-## Demo
+## Use: https://factlens-backend-l34ssaqatq-uc.a.run.app 
 
-*(Video demo coming soon)*
-
-### Presentation
-
-[View Project Presentation](https://docs.google.com/presentation/d/your-link-here/)
+<img width="2559" height="1557" alt="image" src="https://github.com/user-attachments/assets/59c8be89-0986-44a9-9cb0-032d115fb314" />
 
 ---
 
