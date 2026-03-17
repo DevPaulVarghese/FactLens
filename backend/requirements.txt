@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+google-cloud-aiplatform
+google-cloud-modelarmor
+google-cloud-secret-manager
+psycopg2-binary
+requests
+python-dotenv
+pydantic
+sse-starlette
