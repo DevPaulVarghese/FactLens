@@ -16,6 +16,8 @@ An advanced, multi-agent AI framework that transforms how we consume information
 
 <img width="2559" height="1557" alt="image" src="https://github.com/user-attachments/assets/59c8be89-0986-44a9-9cb0-032d115fb314" />
 
+Can be tested for the following URL: https://www.scimex.org/newsfeed/expert-reaction-could-new-coronavirus-have-come-from-snakes
+
 ---
 
 ## 🔍 The Experience
