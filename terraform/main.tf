@@ -69,7 +69,7 @@ resource "google_cloud_run_v2_service" "backend" {
     }
     
     scaling {
-      max_instance_count = 10
+      max_instance_count = var.max_instances
       min_instance_count = 0
     }
   }
