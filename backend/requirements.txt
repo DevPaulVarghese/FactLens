@@ -3,6 +3,9 @@ uvicorn
 google-cloud-aiplatform
 google-cloud-modelarmor
 google-cloud-secret-manager
+google-cloud-storage
+google-cloud-discoveryengine
+google-protobuf
 psycopg2-binary
 requests
 python-dotenv

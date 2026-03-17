@@ -1,47 +1,49 @@
-name: Build and Deploy to Cloud Run
+name: FactLens Production Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  SERVICE: factlens-backend
-  REPO: factlens-backend
+  SERVICE_NAME: factlens-backend
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Google Auth
-      id: auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
-    - name: Authorize Docker
-      run: |
-        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+      - name: Build and Push Container
+        run: |
+          gcloud auth configure-docker --quiet
+          docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:latest ./backend
+          docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
-    - name: Build and Push Container
-      run: |
-        docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:${{ github.sha }} ./backend
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:${{ github.sha }}
-        docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:latest
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:latest
-
-    - name: Deploy to Cloud Run
-      uses: google-github-actions/deploy-cloudrun@v2
-      with:
-        service: ${{ env.SERVICE }}
-        region: ${{ env.REGION }}
-        image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/backend:${{ github.sha }}
-        # Note: ENV variables are managed via Terraform or manual update to avoid leaking in YAML
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+          flags: |
+            --allow-unauthenticated
+            --cpu=2
+            --memory=4Gi
+            --set-env-vars=PROJECT_ID=${{ env.PROJECT_ID }},LOCATION=${{ env.REGION }}

@@ -1,5 +1,4 @@
 terraform {
-  required_version = ">= 1.0.0"
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -13,24 +12,20 @@ provider "google" {
   region  = var.region
 }
 
-# 1. Artifact Registry for Docker Images
-resource "google_artifact_registry_repository" "repo" {
-  location      = var.region
-  repository_id = var.service_name
-  description   = "Docker repository for FactLens backend"
-  format        = "DOCKER"
-}
-
-# 2. GCS Bucket for Knowledge Vault
+# --- Cloud Storage for Vault ---
 resource "google_storage_bucket" "vault_bucket" {
-  name     = "${var.project_id}-factlens-vault"
-  location = var.region
+  name          = var.gcs_bucket_name
+  location      = var.region
   force_destroy = false
 
   uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
 }
 
-# 3. Cloud Run Service (Backend)
+# --- Cloud Run Backend (CPU Optimized) ---
 resource "google_cloud_run_v2_service" "backend" {
   name     = var.service_name
   location = var.region
@@ -38,8 +33,15 @@ resource "google_cloud_run_v2_service" "backend" {
 
   template {
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.repo.name}/backend:latest"
-      
+      image = "gcr.io/${var.project_id}/${var.service_name}:latest" # Built via CI/CD
+
+      resources {
+        limits = {
+          cpu    = var.cpu_count
+          memory = var.memory_limit
+        }
+      }
+
       env {
         name  = "PROJECT_ID"
         value = var.project_id
@@ -50,21 +52,34 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "VAULT_LOCATION"
-        value = "global"
+        value = var.vault_location
       }
       env {
         name  = "GCS_BUCKET_NAME"
         value = google_storage_bucket.vault_bucket.name
       }
-      # Other variables will be set via Secret Manager in a true prod environment
+      env {
+        name  = "DATA_STORE_ID"
+        value = var.data_store_id
+      }
+      env {
+        name  = "MODEL_INFERENCE_ENGINE"
+        value = "VERTEX_AI" # Default to Vertex AI
+      }
+    }
+    
+    scaling {
+      max_instance_count = 10
+      min_instance_count = 0
     }
   }
 }
 
-# 4. IAM - Allow unauthenticated access (External API)
-resource "google_cloud_run_service_iam_member" "public_access" {
+# --- IAM Policies ---
+resource "google_cloud_run_v2_service_iam_member" "noauth" {
   location = google_cloud_run_v2_service.backend.location
-  service  = google_cloud_run_v2_service.backend.name
+  project  = google_cloud_run_v2_service.backend.project
+  name     = google_cloud_run_v2_service.backend.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

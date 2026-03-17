@@ -45,6 +45,39 @@ As the analysis unfolds, the page comes alive:
 
 **FactLens transforms reading from a passive activity into a verified dialogue.**
 
+## 🚀 Production Deployment
+
+We provide a comprehensive infrastructure-as-code template for production rollout.
+
+### 🏛️ Infrastructure (Terraform)
+Located in `/terraform`, this setup automates:
+- **Cloud Run**: Multi-instance CPU-optimized backend.
+- **Cloud Storage**: Secure bucket for the Knowledge Vault.
+- **IAM**: Least-privilege roles for Discovery Engine and GCS.
+
+**Usage:**
+```bash
+cd terraform
+terraform init
+terraform apply -var="project_id=YOUR_PROJECT" -var="gcs_bucket_name=YOUR_BUCKET" -var="data_store_id=YOUR_DATA_STORE"
+```
+
+### 🔄 CI/CD (GitHub Actions)
+The `.github/workflows/deploy.yml` automates:
+1. **Containerization**: Builds a production-ready Docker image.
+2. **Artifact Registry**: Pushes the image to Google's registry.
+3. **Cloud Run Rollout**: Updates the service with zero downtime.
+
+### 🧪 CPU-Only VLLM (Optional)
+To run VLLM on CPU (no GPUs) in production:
+1. Set `count = 1` in `terraform/cpu_inference.tf`.
+2. Update the backend environment variable `VLLM_SERVICE_URL` to point to the new service.
+
+---
+
+## 🏗️ Architecture Detail
+Detailed information about the Multi-Agent orchestrator and Knowledge Vault can be found in our [Architecture Guide](architecture.md).
+
 ---
 
 ## 🧩 The Architecture
