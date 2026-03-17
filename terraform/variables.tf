@@ -15,6 +15,12 @@ variable "vault_location" {
   default     = "global"
 }
 
+variable "max_instances" {
+  description = "Maximum number of instances for scaling"
+  type        = number
+  default     = 8
+}
+
 variable "service_name" {
   description = "Name of the backend service"
   type        = string
