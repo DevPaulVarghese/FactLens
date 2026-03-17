@@ -1,13 +1,23 @@
 # 🎯 FactLens - Real-Time AI Fact-Checking & Trust Analysis
 
-> **Google AI Hackathon — Productive and Informative Category**
+> **Google AI Agents Hackathon 2026**
 
 An advanced, multi-agent AI framework that transforms how we consume information by providing real-time, grounded fact-checking and automated bias analysis directly in your browser.
 
+## ✨ Key Value Propositions
+
+- **🏦 Knowledge Vault**: Ground AI analysis in your own private data (PDF, TXT, etc.) with instant GCS fallback retrieval.
+- **🚀 Multi-Agent Swarm**: Parallel execution of Extraction, Verification, Bias Detection, and Research.
+- **🛡️ Production-Grade Safety**: Integrated with **Google Model Armor** for PII filtering and prompt injection protection.
+- **🎙️ Narrator Mode**: Word-level synchronized text-to-speech highlighting directly on the webpage.
+- **⚙️ Multi-Model Support**: Support for Gemini 2.0 Flash/Pro and VLLM backends.
+
 ## Demo
+
 *(Video demo coming soon)*
 
 ### Presentation
+
 [View Project Presentation](https://docs.google.com/presentation/d/your-link-here/)
 
 ---
@@ -22,12 +32,13 @@ Instead of openning ten tabs to verify, you simply click **Analyse Page Content*
 
 The system springs into action with a coordinated team of AI agents:
 
-1.  **The Extractor** scans the page, surgically identifying atomic, verifiable claims.
-2.  **The Bias Detector** senses the emotional framing and hidden interests in the writing.
-3.  **The Researcher** consults Google Search in the background, finding similar coverage to provide context.
-4.  **The Verifiers** (a swarm of specialized agents) go into deep-dive mode, cross-referencing every claim against **Live Google Search Grounding**.
+1. **The Extractor** scans the page, surgically identifying atomic, verifiable claims.
+2. **The Bias Detector** senses the emotional framing and hidden interests in the writing.
+3. **The Researcher** consults Google Search in the background, finding similar coverage to provide context.
+4. **The Verifiers** (a swarm of specialized agents) go into deep-dive mode, cross-referencing every claim against **Live Google Search Grounding**.
 
 As the analysis unfolds, the page comes alive:
+
 - **Accuracy Gauge**: A real-time trust meter visualizes the overall credibility of the content.
 - **Smart Highlighting**: Factual claims are highlighted directly in the article.
 - **Click-to-Verify**: Hover over any highlighted text to see the AI's reasoning and citations instantly.
@@ -64,22 +75,38 @@ graph TD
     style H fill:#8b5cf6,stroke:#7c3aed,color:#fff
 ```
 
-### 📁 Project Structure
+### 📁 Project Structure & File Index
 
-```
-factlens/
-├── extension/          ← Chrome Extension (UI & Logic)
-│   ├── manifest.json   # Extension manifest
-│   ├── sidepanel.js    # Core UI interaction
-│   └── content_script.js # DOM Highlighting & TTS
-│
-├── backend/            ← FastAPI Service (Agents & Tools)
-│   ├── agents/         # AI Agent implementations
-│   ├── services/       # Orchestration & Infrastructure
-│   └── main.py         # API Endpoints
-│
-└── extension_deployment/ ← Production Artifacts (.zip, .crx)
-```
+| Directory / File | Purpose |
+|------------------|---------|
+| **`extension/`** | **Chrome Extension Frontend** |
+| ├─ `manifest.json` | Web extension configuration and permissions. |
+| ├─ `sidepanel.html/js` | Main UI for chat, analysis, and grounding results. |
+| ├─ `dashboard.html/js` | **Knowledge Vault** management interface (Upload/List/Delete). |
+| ├─ `content_script.js` | Handles page text extraction and DOM highlights. |
+| ├─ `background.js` | Service worker managing extension state. |
+| ├─ `styles/` | CSS design system for a premium dark-mode experience. |
+| **`backend/`** | **FastAPI Multi-Agent Backend** |
+| ├─ `main.py` | API entry point, SSE streaming logic, and Vault endpoints. |
+| ├─ `agents/` | AI Agent Logic: `extractor`, `verifier`, `bias_detector`, `summarizer`, `researcher`. |
+| ├─ `services/` | Infrastructure: `orchestrator`, `inference` (Gemini), `vault` (GCS/Vertex), `model_armor`. |
+| ├─ `.env` | Environment configuration (Project ID, Buckets, Data Stores). |
+| **`root/`** | **Utilities & Documentation** |
+| ├─ `migrate_vault.py` | Utility to migrate local files to the Cloud Vault. |
+| ├─ `secret_test.txt` | Grounding test data for "Paul a Coder" verification. |
+| ├─ `README.md` | Comprehensive project documentation. |
+
+---
+
+## 🏦 Knowledge Vault Architecture
+
+The **Knowledge Vault** allows users to ground AI analysis in their own private documents (PDF, TXT, etc.).
+
+1.  **Storage**: Files are uploaded to **Google Cloud Storage (GCS)** for persistent, secure storage.
+2.  **Indexing**: **Vertex AI Search (Discovery Engine)** indexes these documents for semantic retrieval.
+3.  **Grounding**: During analysis, the **Orchestrator** performs a semantic search across the vault.
+4.  **Fallback Retrieval**: If a document is newly uploaded, the system uses a **GCS Direct-Content Fallback** to ensure the AI can access the information immediately, even before full indexing is complete.
+5.  **Visual Indicators**: Claims grounded in the vault are marked with a 🏦 icon in the UI.
 
 ---
 
@@ -120,12 +147,14 @@ factlens/
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/DevPaulVarghese/FactLens.git
 cd FactLens
 ```
 
-2. **Backend Setup**
+1. **Backend Setup**
+
 ```bash
 cd backend
 python -m venv venv
@@ -135,7 +164,8 @@ cp .env.template .env     # Fill in your PROJECT_ID and key path
 python main.py
 ```
 
-3. **Extension Setup**
+1. **Extension Setup**
+
 - Open `chrome://extensions/`
 - Enable **Developer Mode**
 - Click **Load unpacked**
@@ -146,15 +176,19 @@ python main.py
 ## 🎨 Why It's Cool
 
 ✨ **Live Truth Tracking**  
+
 - Not just static analysis, but dynamic verification against the live web.
 
 🧪 **Multi-Agent Swarm**  
+
 - Agents work in parallel to provide Bias, Similar Coverage, and Fact-Checking simultaneously.
 
 🛡️ **Model Armor Protection**  
+
 - The only fact-checker that uses dedicated safety layers to protect against malicious injections.
 
 🎭 **Premium User Experience**  
+
 - Sleek dark-mode UI, real-time trust meters, and intelligent page highlighting.
 
 ---

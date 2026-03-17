@@ -12,6 +12,7 @@ from agents.verifier import Verifier
 from agents.bias_detector import BiasDetector
 from agents.summarizer import Summarizer
 from agents.researcher import Researcher
+from services.vault import VaultService
 
 class FactCheckingOrchestrator:
     """
@@ -29,7 +30,7 @@ class FactCheckingOrchestrator:
         self.summarizer = Summarizer(self.inference)
         self.researcher = Researcher(self.inference)
         self.db_service = db_service
-        self.db_service = db_service
+        self.vault_service = VaultService()
         self.agent_timeout = 180  # Increased to 180s to handle large articles/extractions
 
     async def process(self, text: str, url: str, title: str = "", model_config: Optional[Dict] = None):
@@ -37,6 +38,17 @@ class FactCheckingOrchestrator:
         Process a fact-check request using the multi-agent pipeline with concurrent research.
         """
         try:
+            use_vault = model_config.get("use_vault", False) if model_config else False
+            vault_context = ""
+            if use_vault:
+                yield self._format_event("status", "Searching Vault...")
+                # Search vault with more context
+                query = text[:1000] if len(text) > 1000 else text
+                vault_results = await self.vault_service.search(query)
+                if vault_results:
+                    vault_context = "\n".join([f"Source: {r['title']}\nContent: {r['snippet']}" for r in vault_results])
+                    logging.info(f"Retrieved {len(vault_results)} snippets from vault.")
+
             # Shared state for parallel tasks
             claims = []
             verification_results = []
@@ -54,7 +66,7 @@ class FactCheckingOrchestrator:
 
             async def wrap_bias():
                 logging.info("Starting bias detection...")
-                res = await self.bias_detector.detect(text, url, model_config=model_config)
+                res = await self.bias_detector.detect(text, url, model_config=model_config, context_extra=vault_context)
                 return "bias", res
 
             async def wrap_research():
@@ -94,8 +106,21 @@ class FactCheckingOrchestrator:
             async def wrap_verification(i, claim):
                 async with semaphore:
                     try:
-                        result = await self.verifier.verify(claim, model_config=model_config)
+                        result = await self.verifier.verify(claim, model_config=model_config, context_extra=vault_context)
                         res_text, sources = result if isinstance(result, tuple) else (result, [])
+                        
+                        # Detect Vault Grounding
+                        is_vault_grounded = "[VAULT_GROUNDED]" in res_text
+                        res_text = res_text.replace("[VAULT_GROUNDED]", "").strip()
+                        
+                        # If vault was used, append a special source
+                        if is_vault_grounded:
+                            sources.append({
+                                "url": "#",
+                                "title": "Knowledge Vault",
+                                "is_vault": True
+                            })
+                            
                         return "verification", {"index": i, "claim": claim, "result": res_text, "sources": sources}
                     except Exception as e:
                         logging.error(f"Verification failed for claim '{claim}': {e}")

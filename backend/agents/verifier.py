@@ -21,20 +21,17 @@ class Verifier:
             "2. Compare the search results with the claim.\n"
             "3. Determine a verdict: [TRUE], [FALSE], or [MISLEADING].\n"
             "4. Provide a concise 2-3 sentence explanation. Do NOT list or mention any references or sources in your explanation - they will be shown separately.\n"
+            "5. IMPORTANT: If the verification is primarily based on information from the USER'S PRIVATE VAULT, append the tag [VAULT_GROUNDED] at the very end of your explanation.\n"
             "Format: Verdict: [Verdict]. Explanation: [Explanation]."
         )
 
-    async def verify(self, claim: str, model_config: dict = None):
+    async def verify(self, claim: str, model_config: dict = None, context_extra: str = ""):
         """
-        Verifies a claim using real-time search grounding.
-        
-        Args:
-            claim (str): The claim to verify.
-            
-        Returns:
-            tuple: (result_text: str, sources: list[dict])
+        Verifies a claim using real-time search grounding and private vault context.
         """
         prompt = f"Verify this claim using live search data: {claim}"
+        if context_extra:
+            prompt += f"\n\nPRIORITY CONTEXT FROM USER'S PRIVATE VAULT:\n{context_extra}\n\nNote: Prioritize information found in the vault if it contradicts general search results."
         
         return await self.inference.generate_text_with_sources(
             prompt, 

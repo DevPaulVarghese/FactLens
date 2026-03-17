@@ -8,6 +8,7 @@ from pydantic import BaseModel
 import os
 import asyncio
 import json
+import logging
 from typing import List
 from dotenv import load_dotenv
 
@@ -17,6 +18,7 @@ from services.inference import LLMInferenceWrapper
 from services.orchestrator import FactCheckingOrchestrator
 from services.model_armor import ModelArmorService
 from services.database import DatabaseService
+from services.vault import VaultService
 from vertexai.generative_models import Tool
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,12 +38,14 @@ app.add_middleware(
 )
 
 db_service = DatabaseService()
+vault_service = VaultService()
 orchestrator = FactCheckingOrchestrator(db_service=db_service)
 model_armor = ModelArmorService()
 
 class ModelConfig(BaseModel):
     model_name: str
     engine: str
+    use_vault: bool = False
 
 class FactCheckRequest(BaseModel):
     text: str
@@ -58,6 +62,7 @@ class ChatRequest(BaseModel):
     context: str
     history: List[ChatMessage] = []
     inference_config: ModelConfig = None
+    use_vault: bool = False
 
 llm_wrapper = LLMInferenceWrapper()
 
@@ -102,7 +107,22 @@ async def chat(request: ChatRequest):
     for msg in request.history:
         history_text += f"{msg.role.capitalize()}: {msg.content}\n"
         
-    prompt = f"Page Context:\n{request.context}\n\nChat History:\n{history_text}\nUser: {request.query}"
+    # Check Vault Grounding
+    use_vault = request.use_vault or (request.inference_config and request.inference_config.use_vault)
+    vault_context = ""
+    if use_vault:
+        logging.info(f"Searching vault for: {request.query}")
+        vault_results = await vault_service.search(request.query)
+        if vault_results:
+            vault_context = "\n\nKnowledge Vault Context (Private Documents):\n" + \
+                           "\n".join([f"Source: {r['title']}\nContent: {r['snippet']}" for r in vault_results])
+            logging.info(f"Chat: Retrieved {len(vault_results)} snippets from vault.")
+
+    prompt = f"Page Context:\n{request.context}\n{vault_context}\n\nChat History:\n{history_text}\nUser: {request.query}"
+    
+    # If vault was used, tell the AI to prioritize it
+    if vault_context:
+        sys_instruction += " Most importantly, you have access to the user's PRIVATE VAULT. If the answer is in the vault context, prioritize it and mention it is from the Knowledge Vault."
     
     async def event_generator():
         try:
@@ -114,6 +134,53 @@ async def chat(request: ChatRequest):
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.post("/vault/upload")
+async def vault_upload(request: Request):
+    form = await request.form()
+    file = form.get("file")
+    if not file:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+    
+    content = await file.read()
+    vault_service.upload_file(content, file.filename)
+    return {"status": "success", "filename": file.filename}
+
+@app.get("/vault/list")
+async def vault_list():
+    files = vault_service.list_files()
+    return {"files": files}
+
+@app.delete("/vault/delete")
+async def vault_delete(filename: str):
+    success = vault_service.delete_file(filename)
+    if success:
+        return {"status": "success", "message": f"Deleted {filename}"}
+    else:
+        raise HTTPException(status_code=404, detail=f"File {filename} not found")
+
+@app.get("/vault/view")
+async def vault_view(filename: str):
+    try:
+        bucket = vault_service.storage_client.bucket(vault_service.bucket_name)
+        blob = bucket.blob(filename)
+        if not blob.exists():
+            raise HTTPException(status_code=404, detail=f"File {filename} not found")
+        
+        content = blob.download_as_bytes()
+        media_type = "application/pdf" if filename.lower().endswith(".pdf") else "text/plain"
+        return StreamingResponse(
+            iter([content]), 
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f"inline; filename={filename}",
+                "Cache-Control": "no-cache"
+            }
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Error viewing file {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

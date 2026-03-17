@@ -15,6 +15,7 @@ class LLMInferenceWrapper:
     def __init__(self):
         self.project_id = os.getenv("PROJECT_ID", "qwiklabs-asl-01-dee24014efed")
         self.location = os.getenv("LOCATION", "us-central1")
+        logging.info(f"LLMInferenceWrapper initialized with location: {self.location}")
         self.engine = os.getenv("MODEL_INFERENCE_ENGINE", "VERTEX_AI")
         self.model_name = os.getenv("MODEL_NAME", "gemini-2.5-flash")
         self.vllm_service_url = os.getenv("VLLM_SERVICE_URL")
